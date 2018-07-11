@@ -49,10 +49,28 @@
 	nop
 	nop
 	nop
+
+;8048h
 wtblnk:	in	a,(0d0h)
 	rlca
 	jp	c,wtblnk
 	ret
+	nop
+
+;8050h
+rnd:	ld	hl,0
+	ld	d,h
+	ld	e,l
+	add	hl,hl
+	add	hl,hl
+	add	hl,de
+	ld	de,3711h
+	add	hl,de
+	ld	(rnd+1),hl
+	ld	a,h
+	ld	(0f462h),a	;r%
+	ret
+
 	.dephase
 
 	end
