@@ -1,0 +1,58 @@
+	.z80
+	cseg
+
+	.phase 8004h
+	ld	hl,(0f46ch)	;%w
+	add	hl,hl	;x2
+	add	hl,hl	;x4
+	ld	d,h
+	ld	e,l
+	add	hl,hl	;x8
+	add	hl,hl	;x16
+	add	hl,de	;x20
+	add	hl,hl	;x40
+	ex	de,hl
+	ld	hl,(0f46ah)	;v%
+	add	hl,de
+	ld	bc,0f800h
+	add	hl,bc
+	nop		;or call wtblnk
+	nop
+	nop
+	ld	a,11111011b
+	out	(0d0h),a
+	ld	a,20h
+	ld	(hl),a
+	ld	a,11111100b
+	out	(0d0h),a
+	ld	hl,(0f470h)	;y%
+	add	hl,hl	;x2
+	add	hl,hl	;x4
+	ld	d,h
+	ld	e,l
+	add	hl,hl	;x8
+	add	hl,hl	;x16
+	add	hl,de	;x20
+	add	hl,hl	;x40
+	ex	de,hl
+	ld	hl,(0f46eh)	;x%
+	add	hl,de
+	add	hl,bc
+	ld	a,11111011b
+	out	(0d0h),a
+	ld	a,(0f440h)	;a%
+	ld	(hl),a
+	ld	a,11111100b
+	out	(0d0h),a
+	ret
+	nop
+	nop
+	nop
+	nop
+wtblnk:	in	a,(0d0h)
+	rlca
+	jp	c,wtblnk
+	ret
+	.dephase
+
+	end
