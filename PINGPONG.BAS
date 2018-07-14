@@ -4,8 +4,8 @@
     40 DIM WV%(15),WW%(15)
     50 A%=$EC:C%=7:X%=0:Y%=0:V%=0:W%=0
     60 R%=0:FOR I%=0 TO C%
-    70 USR($8050):WX%(I%)=AND(R%,31)
-    75 USR($8050):WY%(I%)=AND(R%,15)
+    70 USR($8007):WX%(I%)=AND(R%,31)
+    75 USR($8007):WY%(I%)=AND(R%,15)
     80 WT%(I%)=1:WU%(I%)=1
     90 NEXT I%
    100 Z%=PEEK($F150)-1

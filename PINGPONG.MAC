@@ -2,7 +2,10 @@
 	cseg
 
 	.phase 8004h
-	ld	hl,(0f46ch)	;%w
+	jp	mvchr	;8004
+	jp	rnd	;8007
+
+mvchr:	ld	hl,(0f46ch)	;%w
 	add	hl,hl	;x2
 	add	hl,hl	;x4
 	ld	d,h
@@ -11,6 +14,11 @@
 	add	hl,hl	;x16
 	add	hl,de	;x20
 	add	hl,hl	;x40
+	ld	a,(0f150h)	;width
+	cp	80
+	jp	c,m401
+	add	hl,hl	;x80
+m401:
 	ex	de,hl
 	ld	hl,(0f46ah)	;v%
 	add	hl,de
@@ -34,6 +42,11 @@
 	add	hl,hl	;x16
 	add	hl,de	;x20
 	add	hl,hl	;x40
+	ld	a,(0f150h)	;width
+	cp	80
+	jp	c,m402
+	add	hl,hl	;x80
+m402:
 	ex	de,hl
 	ld	hl,(0f46eh)	;x%
 	add	hl,de
@@ -45,19 +58,12 @@
 	ld	a,11111100b
 	out	(0d0h),a
 	ret
-	nop
-	nop
-	nop
-	nop
 
-;8048h
 wtblnk:	in	a,(0d0h)
 	rlca
 	jp	c,wtblnk
 	ret
-	nop
 
-;8050h
 rnd:	ld	hl,0
 	ld	d,h
 	ld	e,l
