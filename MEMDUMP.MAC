@@ -1,0 +1,226 @@
+	.z80
+
+SYSTEM	equ	0005h
+DTA	equ	0080h
+
+	cseg
+
+	ld	sp,(SYSTEM+1)
+
+	ld	hl,DTA
+	ld	a,(hl)
+	or	a
+	jr	z,error_end
+	inc	hl
+	add	a,l
+	ld	l,a
+	adc	a,h
+	sub	l
+	ld	h,a
+	ld	(hl),0
+	ld	hl,DTA
+;
+;skip spaces
+;
+.loop0:	inc	hl
+	ld	a,(hl)
+	or	a
+	jr	z,error_end
+	cp	' '
+	jr	z,.loop0
+	push	hl
+;
+; find next space
+;
+.loop1:	ld	a,(hl)
+	or	a
+	jr	z,error_end2
+	cp	' '
+	jr	z,.next_param
+	inc	hl
+	jr	.loop1
+.next_param:
+	ld	(hl),0
+;
+; skip spaces
+;
+.loop2:	inc	hl
+	ld	a,(hl)
+	or	a
+	jr	z,error_end2
+	cp	' '
+	jr	z,.loop2
+;
+; convert 2nd parameter (decimal)
+;
+	call	cnv_from_dec
+	pop	de
+
+	ld	a,h
+	or	l
+	ret	z	; end if size=0
+
+	push	hl
+	ex	de,hl
+;
+; convert 1st parameter (hex)
+;
+	call	cnv_from_hex
+	pop	de
+
+.loop3:
+	call	disp_word
+	push	de
+	push	hl
+	ld	b,16
+	call	disp_bytes
+	pop	hl
+	pop	de
+	ld	a,' '
+	call	putchar
+	ld	a,':'
+	call	putchar
+	ld	a,' '
+	call	putchar
+	ld	b,16
+	call	disp_chars
+	ld	a,0dh
+	call	putchar
+	ld	a,0ah
+	call	putchar
+	ld	a,d
+	or	e
+	jr	nz,.loop3
+	jp	0
+
+error_end2:
+	pop	hl
+error_end:
+	ld	c,9
+	ld	de,msg_howToUse
+	call	SYSTEM
+	jp	0
+
+disp_word:
+	ld	a,h
+	call	disp_byte
+	ld	a,l
+	call	disp_byte
+	ret
+
+disp_bytes:
+.d8bl:	ld	a,' '
+	call	putchar
+	ld	a,d
+	or	e
+	jr	nz,.d8bc
+	ld	a,' '
+	call	putchar
+	call	putchar
+	jr	.d8bd
+.d8bc:	ld	a,(hl)
+	call	disp_byte
+	dec	de
+	inc	hl
+.d8bd:	djnz	.d8bl
+	ret
+
+disp_chars:
+.d8cl:	ld	a,d
+	or	e
+	ret	z
+	ld	a,(hl)
+	or	a
+	jp	m,.d8cv
+	cp	' '
+	jr	nc,.d8cp
+.d8cv:	ld	a,'.'
+.d8cp:	call	putchar
+	inc	hl
+	dec	de
+	djnz	.d8cl
+	ret
+
+disp_byte:
+	push	bc
+	ld	b,2
+	ld	c,a
+	rrca
+	rrca
+	rrca
+	rrca
+.dbl0:	and	00001111b
+	cp	10
+	ccf
+	adc	a,'0'
+	daa
+	call	putchar
+	ld	a,c
+	djnz	.dbl0
+	pop	bc
+	ret
+
+cnv_from_dec:
+	ex	de,hl
+	ld	hl,0
+.ldec:	ld	a,(de)
+	or	a
+	ret	z
+	inc	de
+	sub	'0'
+	add	hl,hl
+	push	hl
+	add	hl,hl
+	add	hl,hl
+	pop	bc
+	add	hl,bc
+	add	a,l
+	ld	l,a
+	adc	a,h
+	sub	l
+	ld	h,a
+	jr	.ldec
+
+cnv_from_hex:
+	ex	de,hl
+	ld	hl,0
+.lhex:	ld	a,(de)
+	or	a
+	ret	z
+	inc	de
+	cp	'a'
+	jr	nc,.cs
+	cp	'A'
+	jr	nc,.cl
+	jr	.cn
+.cs:	sub	'a'-'A'
+.cl:	sub	'A'-'0'-10
+.cn:	sub	'0'
+	add	hl,hl
+	add	hl,hl
+	add	hl,hl
+	add	hl,hl
+	add	a,l
+	ld	l,a
+	jr	.lhex
+
+putchar:
+	push	bc
+	push	de
+	push	hl
+	push	af
+	ld	c,2
+	ld	e,a
+	call	SYSTEM
+	pop	af
+	pop	hl
+	pop	de
+	pop	bc
+	ret
+
+msg_howToUse:
+	db	'USAGE: MEMDUMP XXXX nnn',0dh,0ah
+	db	'         XXXX = address in hex.',0dh,0ah
+	db	'         nnn  = bytes in decimal.',0dh,0ah,'$'
+
+	end
