@@ -40,3 +40,17 @@ MEMDUMP.MAC がソースで、CP/M上で以下のようにして *.COMの生成�
 M80 =MEMDUMP/Z
 L80 MEMDUMP,MEMDUMP/N/E
 ```
+
+#### FILEDUMP.COM
+
+CP/Mで動作するファイルダンプツール。もちろん、 ND80Z3向けの CP/M互換 OSである ZB3DOSでも動作します。   
+以下のようにして使用します。  
+```
+FILEDUMP [FILENAME]
+```
+JR, DJNZ 命令を使っているので Z80 でしか動作しませんが、逆に言えばそこだけ変更すれば 8080でも動作するということです。  
+FILEDUMP.MAC がソースで、CP/M上で以下のようにして *.COMの生成が可能です。(M80, L80が必要)  
+```
+M80 =FILEDUMP/Z
+L80 FILEDUMP,FILEDUMP/N/E
+```

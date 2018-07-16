@@ -1,0 +1,166 @@
+	.z80
+	cseg
+
+SYSTEM	equ	0005h
+FCB	equ	005ch
+DTA	equ	0080h
+
+BYTES	equ	16
+
+	ld	sp,(SYSTEM+1)
+	ld	a,(DTA)
+	or	a
+	jp	z,error_end
+	ld	de,FCB
+	call	fropen
+	jp	nz,error_end
+
+	ld	hl,0
+loop1:	push	hl
+	ld	de,FCB
+	call	frread
+	jp	nz,0
+	ex	de,hl
+	pop	hl
+	ld	bc,DTA
+loop2:	call	put_offset
+	push	hl
+	ld	h,b
+	ld	l,c
+	call	put_bytes
+	call	put_separator
+	call	put_ascii	;hl is incremented, de is decremented
+	call	put_crlf
+	ld	b,h
+	ld	c,l
+	pop	hl
+	ld	a,BYTES
+	add	a,l
+	ld	l,a
+	adc	a,h
+	sub	l
+	ld	h,a
+	ld	a,d
+	or	e
+	jr	nz,loop2
+	jr	loop1
+
+put_offset:
+	ld	a,h
+	call	put_byte
+	ld	a,l
+	call	put_byte
+	ret
+
+put_bytes:
+	push	bc
+	push	de
+	push	hl
+	ld	b,BYTES
+_p80:	ld	a,' '
+	call	putchar
+	ld	a,d
+	or	e
+	jr	nz,_p81
+	ld	a,' '
+	call	putchar
+	ld	a,' '
+	call	putchar
+	jr	_p82
+_p81:	ld	a,(hl)
+	call	put_byte
+	inc	hl
+	dec	de
+_p82:	djnz	_p80
+	pop	hl
+	pop	de
+	pop	bc
+	ret
+
+put_ascii:
+	push	bc
+	ld	b,BYTES
+_p8a0:	ld	a,d
+	or	e
+	jr	z,_p8a2
+	ld	a,(hl)
+	or	a
+	jp	m,_p8a3
+	cp	' '
+	jr	nc,_p8a1
+_p8a3:	ld	a,'.'
+_p8a1:	call	putchar
+	inc	hl
+	dec	de
+	djnz	_p8a0
+_p8a2:	pop	bc
+	ret
+
+put_separator:
+	ld	a,' '
+	call	putchar
+	ld	a,':'
+	call	putchar
+	ld	a,' '
+	call	putchar
+	ret
+
+put_byte:
+	push	bc
+	ld	b,2
+	ld	c,a
+	rrca
+	rrca
+	rrca
+	rrca
+_pb0:	and	00001111b
+	cp	10
+	ccf
+	adc	a,'0'
+	daa
+	call	putchar
+	ld	a,c
+	djnz	_pb0
+	pop	bc
+	ret
+
+put_crlf:
+	ld	a,0dh
+	call	putchar
+	ld	a,0ah
+	
+putchar:
+	push	bc
+	push	de
+	push	hl
+	ld	c,2
+	ld	e,a
+	call	SYSTEM
+	pop	hl
+	pop	de
+	pop	bc
+	ret
+
+error_end:
+	ld	c,9
+	ld	de,msg_usage
+	call	SYSTEM
+	jp	0
+
+fropen:	ld	c,0fh	;OPEN
+	call	SYSTEM
+	or	a
+	ret
+
+frread:	ld	c,14h	;SEQ-READ
+	call	SYSTEM
+	ld	hl,0
+	or	a
+	ret	nz
+	ld	l,128
+	ret
+
+msg_usage:
+	db	"FILEDUMP [filename]",0dh,0ah,'$'
+
+	end
