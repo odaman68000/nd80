@@ -13,7 +13,7 @@ BYTES	equ	16
 	jp	z,error_end
 	ld	de,FCB
 	call	fropen
-	jp	nz,error_end
+	jp	c,error_end
 
 	ld	hl,0
 loop1:	push	hl
@@ -149,7 +149,7 @@ error_end:
 
 fropen:	ld	c,0fh	;OPEN
 	call	SYSTEM
-	or	a
+	rlca
 	ret
 
 frread:	ld	c,14h	;SEQ-READ
