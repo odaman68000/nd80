@@ -4,8 +4,7 @@
 SYSTEM	equ	0005h
 FCB	equ	005ch
 DTA	equ	0080h
-
-BYTES	equ	16
+WIDTH	equ	0f150h
 
 	ld	sp,(SYSTEM+1)
 	ld	a,(DTA)
@@ -34,7 +33,7 @@ loop2:	call	put_offset
 	ld	b,h
 	ld	c,l
 	pop	hl
-	ld	a,BYTES
+	call	getwth
 	add	a,l
 	ld	l,a
 	adc	a,h
@@ -56,7 +55,8 @@ put_bytes:
 	push	bc
 	push	de
 	push	hl
-	ld	b,BYTES
+	call	getwth
+	ld	b,a
 _p80:	ld	a,' '
 	call	putchar
 	ld	a,d
@@ -79,7 +79,8 @@ _p82:	djnz	_p80
 
 put_ascii:
 	push	bc
-	ld	b,BYTES
+	call	getwth
+	ld	b,a
 _p8a0:	ld	a,d
 	or	e
 	jr	z,_p8a2
@@ -160,7 +161,20 @@ frread:	ld	c,14h	;SEQ-READ
 	ld	l,128
 	ret
 
+getwth:	ld	a,(wwork)
+	or	a
+	ret	nz
+	ld	a,(WIDTH)
+	cp	40
+	ld	a,8
+	jr	z,gw1
+	rlca
+gw1:	ld	(wwork),a
+	ret
+
 msg_usage:
 	db	"FILEDUMP [filename]",0dh,0ah,'$'
+
+wwork:	db	0
 
 	end
