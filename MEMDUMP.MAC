@@ -2,6 +2,7 @@
 
 SYSTEM	equ	0005h
 DTA	equ	0080h
+WIDTH	equ	0f150h
 
 	cseg
 
@@ -72,7 +73,8 @@ DTA	equ	0080h
 	call	disp_word
 	push	de
 	push	hl
-	ld	b,16
+	call	getwth
+	ld	b,a
 	call	disp_bytes
 	pop	hl
 	pop	de
@@ -82,7 +84,8 @@ DTA	equ	0080h
 	call	putchar
 	ld	a,' '
 	call	putchar
-	ld	b,16
+	call	getwth
+	ld	b,a
 	call	disp_chars
 	ld	a,0dh
 	call	putchar
@@ -218,9 +221,22 @@ putchar:
 	pop	bc
 	ret
 
+getwth:	ld	a,(wwork)
+	or	a
+	ret	nz
+	ld	a,(WIDTH)
+	cp	40
+	ld	a,8
+	jr	z,gw1
+	rlca
+gw1:	ld	(wwork),a
+	ret
+
 msg_howToUse:
 	db	'USAGE: MEMDUMP XXXX nnn',0dh,0ah
 	db	'         XXXX = address in hex.',0dh,0ah
 	db	'         nnn  = bytes in decimal.',0dh,0ah,'$'
+
+wwork:	db	0
 
 	end
