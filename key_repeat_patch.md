@@ -37,7 +37,7 @@ ND80Z3にて、独立化キットを使ってて、少し不満がありまし�
 53EA C27354          JP      NZ,ATRPT
 53ED 3E14            LD      A,0CH	;変更点A
 53EF 327BF0          LD      (ATCK),A
-53F2 DBD5     INDP3: IN      A,(D5)
+53F2 DBD5     INDP3: IN      A,(0D5H)
        :
 547D 327BF0          LD      (ATCK),A
 5480 C2CA53          JP      NZ,INDP2
