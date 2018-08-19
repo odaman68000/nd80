@@ -69,10 +69,8 @@ chput:	push	de
 	push	hl
 	push	af
 	ld	hl,(CADRS)
-	inc	hl
 	ld	d,00000111b
 	call	colset
-	dec	hl
 	cp	09h
 	jr	nz,chput0
 	ld	de,VRMTOP
@@ -99,8 +97,7 @@ chput0:	cp	7fh
 chputY:	ld	hl,ADISP
 	call	romcal
 	ld	hl,(CADRS)
-chputZ:	inc	hl
-	ld	d,01110000b
+chputZ:	ld	d,01110000b
 	call	colset
 	pop	af
 	pop	hl
@@ -110,9 +107,10 @@ chputZ:	inc	hl
 posit:	push	de
 	push	hl
 	push	af
+	dec	h
+	dec	l
 	ld	a,h
 	ld	h,0
-	dec	l
 	add	hl,hl	;*=2
 	add	hl,hl	;*=4
 	add	hl,hl	;*=8
@@ -198,11 +196,13 @@ chrset:	push	de
 	ret
 
 colset:	push	af
+	inc	hl
 	ld	e,(hl)
 	ld	a,11110111b
 	out	(VRMCTL),a
 	ld	(hl),d
 	call	vrmset
+	dec	hl
 	pop	af
 	ret
 
