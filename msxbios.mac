@@ -9,7 +9,6 @@ KYWAIT	equ	5209h
 KEYIN	equ	520ch
 
 CADRS	equ	0f054h
-RST5HK	equ	0f13ch
 RST6HK	equ	0f13fh
 VRMTOP	equ	0f800h
 
@@ -34,6 +33,7 @@ PS2KEY	equ	0d4h
 	jp	rslreg
 	jp	inivdp
 	jp	sq1bJ
+	jp	vdprst
 
 romcal:	push	af
 	ld	a,00010000b
@@ -157,17 +157,24 @@ cls:	push	hl
 
 initxt:	jp	cls
 
-chsns:
-rslreg:	xor	a
+chsns:	xor	a
 rdslt:
 wrslt:
-enaslt:
 setrd:
 lptout:	ret
 
+rslreg:	ld	a,(svbank)
+	ret
+
+enaslt:	ld	(svbank),a
+	out	(BANKIO),a
+	ld	a,0c3h
+	ld	(0030h),a
+	ld	hl,RST6HK
+	ld	(0031h),hl
+	ret
+
 inivdp:	push	hl
-	ld	hl,vdprst
-	ld	(RST5HK+1),hl
 	ld	hl,vdpwrt
 	ld	(RST6HK+1),hl
 	pop	hl
@@ -260,8 +267,8 @@ svbank:	db	00010000b
 keycnt:	db	12
 currpo:	dw	0
 
-	db	"ND80-AIDS Version 1.0, "
-	db	"converted from MSX by Tetsuo Oda, 2018.",0
+	db	"ND80-AIDS 1.0, "
+	db	"converted from MSX by T.Oda, 2018.",0
 	db	"MSX-BIOS, and VDP accessing is simulated with routines@D800h-.",0
 
 	.dephase
