@@ -1,0 +1,28 @@
+	.z80
+	cseg
+
+AIDADR	equ	0bc00h
+AIDSTR	equ	0c900h
+ENASLT	equ	0d106h
+
+	.phase	100h
+	ld	sp,(0006h)
+
+; transfer ND80-AIDS to BC00h-D2FFh.
+	ld	hl,target
+	ld	de,AIDADR
+	ld	bc,ta_end-target
+	ldir
+
+; set current bank with ENASLT call.
+	ld	a,0ffh	; current CP/M RAM Bank
+	call	ENASLT
+
+; boot ND80-AIDS.
+	call	AIDSTR
+	jp	0
+
+target:	incbin	n8aidsbc.bin
+ta_end:
+
+	end
