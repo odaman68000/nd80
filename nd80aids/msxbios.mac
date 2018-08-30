@@ -1,8 +1,6 @@
 	.z80
 	cseg
 
-WIDTH	equ	40
-
 RCLS	equ	5203h
 ADISP	equ	5206h
 KYWAIT	equ	5209h
@@ -11,6 +9,8 @@ KEYIN	equ	520ch
 CADRS	equ	0f054h
 RST4HK	equ	0f139h
 RST6HK	equ	0f13fh
+VTCHR	equ	0f150h
+VRAME	equ	0f156h
 VRMTOP	equ	0f800h
 
 SWTHIO	equ	098h
@@ -120,6 +120,12 @@ posit:	push	de
 	add	hl,hl	;*=16
 	add	hl,hl	;*=32
 	add	hl,de	;*=40
+	push	af
+	ld	a,(VTCHR)
+	cp	80
+	jr	c,posit0
+	add	hl,hl	;*=80
+posit0:	pop	af
 	ld	d,high VRMTOP
 	ld	e,a
 	add	hl,de
@@ -194,6 +200,8 @@ dcompr:	ld	a,h
 	ret
 
 vdprst:	push	hl
+	ld	hl,currx
+	ld	(hl),0
 	ld	hl,VRMTOP
 	ld	(currpo),hl
 	pop	hl
@@ -203,6 +211,24 @@ vdpwrt:	push	hl
 	ld	hl,(currpo)
 	call	chrset
 	inc	hl
+	push	af
+	; if 40 characters disp., skip it.
+	ld	a,(VTCHR)
+	cp	80
+	jr	c,vdpwr1
+	; if cursor position comes 40 characters, skip next 40 bytes.
+	ld	a,(currx)
+	inc	a
+	cp	40
+	jr	c,vdpwr0
+	add	a,l
+	ld	l,a
+	adc	a,h
+	sub	l
+	ld	h,a
+	xor	a
+vdpwr0:	ld	(currx),a
+vdpwr1:	pop	af
 	ld	(currpo),hl
 	pop	hl
 	ret
@@ -235,7 +261,7 @@ vrmset:	ld	a,11111011b
 
 sq1bJ:	push	de
 	push	hl
-	ld	de,VRMTOP+WIDTH*25
+	ld	de,(VRAME)
 	ld	hl,(CADRS)
 	xor	a
 sq1bJ0:	call	chrset
@@ -263,7 +289,7 @@ w27ms0:	ex	(sp),hl
 getx:	push	bc
 	push	hl
 	or	a
-	ld	bc,WIDTH
+	ld	bc,(VTCHR)
 getx0:	sbc	hl,bc
 	jr	nc,getx0
 	add	hl,bc
@@ -279,9 +305,10 @@ getx0:	sbc	hl,bc
 svbank:	db	00010000b
 keycnt:	db	12
 currpo:	dw	0
+currx:	db	0
 
 	db	"ND80-AIDS 1.0, "
-	db	"converted from MSX by T.Oda, 2018.",0
+	db	"converted from MSX by T.Oda, 2018"
 
 	.dephase
 
